@@ -1,0 +1,9 @@
+
+###### Requirements without Version Specifiers ######
+matplotlib
+numpy
+math
+scipy
+
+
+###### Requirements with Version Specifiers ######
