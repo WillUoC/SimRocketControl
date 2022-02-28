@@ -2,7 +2,6 @@
 ###### Requirements without Version Specifiers ######
 matplotlib
 numpy
-math
 scipy
 
 
