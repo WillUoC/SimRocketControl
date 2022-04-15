@@ -3,6 +3,5 @@
 matplotlib
 numpy
 scipy
-unittest
 
 ###### Requirements with Version Specifiers ######
