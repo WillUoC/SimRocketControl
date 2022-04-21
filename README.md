@@ -1,5 +1,5 @@
 # ModelSimProject
-## By: Aaron Schmitt, Alexis Whitaker, Nate Steffen, and William Black
+## By: Alexis Whitaker, Nate Steffen, and William Black
 
 ### Description
 
