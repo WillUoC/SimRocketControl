@@ -19,7 +19,8 @@ def main():
     fig1 = plt.figure()
     ax = fig1.add_subplot(projection='3d')
 
-    rocket._states = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    rocket._states = np.array([0, 0, -70, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    rocket._deltas = np.array([0, 0, 0])
 
     def update_vertices(i):
         vr, simplices = rocket.get_vertices()
@@ -39,6 +40,8 @@ def main():
         #plane._update_state_array()
 
         ax.plot3D(vr[:, 0], vr[:, 1], vr[:, 2]) 
+        
+        
         # for i in simplices:
         #     i = np.append(i, i[0])
         #     ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')
@@ -48,6 +51,7 @@ def main():
         plt.show()
     
     animate_rocket()
+
 # LONG explanation, but this is the clearest and best way to define the main function
 if __name__ == "__main__":
     main()

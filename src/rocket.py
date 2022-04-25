@@ -9,6 +9,12 @@ class Rocket:
         self._states = np.zeros(12)
         self._deltas = np.array([0, 0, 1])
         self._dt = dt
+
+
+        MATRIX_TIME = 10  # s
+        self._state_array = np.zeros((12, MATRIX_TIME//dt))
+
+
         self._com_height = 0
         self._mass = 549054*0.25  # kg -- Mass of Falcon 9 (fuel weight removed... approximately)
 
@@ -83,10 +89,10 @@ class Rocket:
         return R_b_w
     
     def set_state(self, states):
-        pass
+        self._states = states
 
     def set_deltas(self, deltas):
-        pass
+        self._deltas = deltas
 
     def get_pos(self):
         R_plot = np.array([ 
@@ -97,13 +103,15 @@ class Rocket:
         return(com)
 
     def _update_state_array(self):
-        pass
+        self._state_array = self._state_array[:, 1:]
+        reshape_arr = np.reshape(self._states, (-1,1))
+        self._state_array = np.append(self._state_array, reshape_arr, 1)
 
     def get_states(self):
-        pass
+        return(self._states)
 
     def get_state_array(self):
-        pass
+        return(self._state_array)
     
     def _compute_forces_moments(self, states, deltas):
         distance_vector = np.array([0, 0, self._com_height])
@@ -190,7 +198,6 @@ class Rocket:
         angles = states[6:9]
         roll_rates = states[9:12]
 
-        #TODO: Implement forces and moments
         forces, moments = self._compute_forces_moments(states, deltas)
 
 
@@ -224,5 +231,6 @@ class Rocket:
                             [0,  0, -1]])                       # Reference frame shift for NWU plotting   
 
         vr = np.matmul(R_plot, vr.T).T                          # Refactor the vertex array for NWU plotting
+        self._update_state_array()
 
         return(vr, self._simplices)
