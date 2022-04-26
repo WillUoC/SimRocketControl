@@ -3,7 +3,7 @@
 
 ### Description
 
-This is a short concise placeholder for our project description... for when we figure out what we actually want to do!
+A project to simulate a SpaceX-esque rocket to land using the control of its thruster.
 
 ----------------------------------------------------------------------------------------------------------------
 Note:
