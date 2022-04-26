@@ -2,17 +2,18 @@ import numpy as np
 from numpy import sin, cos, tan
 from scipy.spatial import ConvexHull
 from scipy.integrate import solve_ivp
+import math
 class Rocket:
     _gravity = 9.81
 
     def __init__(self, dt):
         self._states = np.zeros(12)
-        self._deltas = np.array([0, 0, 1])
+        self._deltas = np.zeros(3)
         self._dt = dt
 
 
         MATRIX_TIME = 10  # s
-        self._state_array = np.zeros((12, MATRIX_TIME//dt))
+        self._state_array = np.zeros((12, math.floor(MATRIX_TIME//dt)))
 
 
         self._com_height = 0
@@ -214,6 +215,9 @@ class Rocket:
         updated_states = solve_ivp(lambda t, y: self.dynamics(t, y, self._states, self._deltas), [0, self._dt], self._states)
         updated_states = updated_states.y[:, -1].T
 
+        if updated_states[2] > -self._com_height:
+            updated_states[2] = -self._com_height
+            updated_states[5] = 0
         self._states = updated_states
 
         pos_ned = self._states[0:3]
