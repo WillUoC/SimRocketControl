@@ -25,8 +25,9 @@ class Rocket:
         self._thrust = 5885000  # N
 
         cylinder_inertia = 1/4*self._mass*self._radius**2 + 1.0/12.0*self._mass*self._height**2
+        cylinder_axis_inertia = 1/2*self._mass*self._radius**2
 
-        self._inertias = np.array([cylinder_inertia, cylinder_inertia, 1])
+        self._inertias = np.array([cylinder_inertia, cylinder_inertia, cylinder_axis_inertia])
         self._vertices, self._simplices = self._generate_body_matrix()
     
     def _generate_body_matrix(self):
@@ -185,8 +186,8 @@ class Rocket:
             p, q, r = roll_rates
             M1 = moments - np.array([
                 q*r*(self._inertias[2] - self._inertias[1]), 
-                r*p*(self._inertias[0]-self._inertias[2]), 
-                p*q*(self._inertias[1]-self._inertias[0])])
+                r*p*(self._inertias[0] - self._inertias[2]), 
+                p*q*(self._inertias[1] - self._inertias[0])])
 
             roll_ddot = np.divide(M1, self._inertias)
             return(roll_ddot)
