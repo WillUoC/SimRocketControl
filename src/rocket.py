@@ -51,7 +51,7 @@ class Rocket:
             heights = np.arange(-com_height+self.nozzle_height, -com_height+self._height+height_resolution, height_resolution)
 
             for i in heights:
-                if i > cylinder_height - com_height:
+                if i > cylinder_diameter - com_height:
                     norm_height =  i - (cylinder_height+self.nozzle_height-com_height)
                     diameter = cylinder_diameter*np.sqrt(cone_height*(cone_height-norm_height))/cone_height
                 else:
@@ -100,11 +100,8 @@ class Rocket:
                 for j in range(diameter_pts):
                     new_point = np.zeros((1, 3))
                     new_point[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
-                    if count != 0:
-                        points = np.append(points, new_point, 0)
-                    else:
-                        points[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
-                        count += 1
+                    points = np.append(points, new_point, 0)
+                    #points -= np.array([0,0,self.nozzle_height])
             
             points_new = np.zeros(np.shape(points))
             points_new[:, 0] = points[:, 1]
@@ -280,12 +277,14 @@ class Rocket:
         v = self._vertices                                      # Get the default body frame
         vn = self._n_verticies
         #nAngles = angles + self._deltas
-        nAngles = np.array([angles[0]+self._deltas[0],angles[1]+self._deltas[1],angles[2]])
+       # nAngles = np.array([angles[0]+self._deltas[0],angles[1]+self._deltas[1],angles[2]])
+        nAngles = np.array([self._deltas[0],self._deltas[1],0])
         ned_rep = np.tile(pos_ned.T, (len(v), 1))               # Create MxN Matric Copies of pos_ned for Translation
         ned_repN = np.tile(pos_ned.T, (len(vn),1))
 
         R = self._rotate_matrix(angles)                         # Get the rotation matrix for the current state of the aircraft
         Rn = self._rotate_matrix(nAngles)
+        vn = np.matmul(R,vn.T).T
         vn = np.matmul(Rn,vn.T).T
         vn += ned_repN
         vr = np.matmul(R, v.T).T                                # Multiply the body frame by the rotation matrix to get the rotated vertex position
