@@ -104,8 +104,7 @@ class Rocket:
                         points = np.append(points, new_point, 0)
                     else:
                         points[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
-                    count += 1
-
+                        count += 1
             
             points_new = np.zeros(np.shape(points))
             points_new[:, 0] = points[:, 1]
@@ -281,7 +280,7 @@ class Rocket:
         v = self._vertices                                      # Get the default body frame
         vn = self._n_verticies
         #nAngles = angles + self._deltas
-        nAngles = np.array([angles[0],angles[1],0])
+        nAngles = np.array([angles[0]+self._deltas[0],angles[1]+self._deltas[1],angles[2]])
         ned_rep = np.tile(pos_ned.T, (len(v), 1))               # Create MxN Matric Copies of pos_ned for Translation
         ned_repN = np.tile(pos_ned.T, (len(vn),1))
 
