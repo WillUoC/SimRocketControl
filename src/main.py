@@ -32,21 +32,26 @@ def main():
     ax.set_zlabel('Down Axis (m)')
 
     lines = []
-    vr, simplices = rocket.get_vertices()
+    nlines = []
+    vr,vn,simplices,nsimplices = rocket.get_vertices()
 
     for index in range(len(simplices)):
         plog, = ax.plot([], [], [], 'r-')
         lines.append(plog)
+    
+    for index in range(len(nsimplices)):
+        nplog, = ax.plot([], [], [], 'r-')
+        nlines.append(nplog)
 
     rocket._states = np.array([0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     rocket._deltas = np.array([0, 0, 0])
 
     def update_vertices(i):
-        vr, simplices = rocket.get_vertices()
+        vr,vn,simplices,nsimplices = rocket.get_vertices()
         pos = rocket.get_pos()
 
 
-        AXIS_LIMIT = 80
+        AXIS_LIMIT = 100
 
         ax.set_xlim3d(pos[0] - AXIS_LIMIT, pos[0] + AXIS_LIMIT)
         ax.set_ylim3d(pos[1] - AXIS_LIMIT, pos[1] + AXIS_LIMIT)
@@ -61,6 +66,12 @@ def main():
             i = np.append(i, i[0])
             lines[ind].set_data(vr[i, 0], vr[i, 1])
             lines[ind].set_3d_properties(vr[i, 2])
+            #ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')
+
+        for ind, i in enumerate(nsimplices):
+            i = np.append(i, i[0])
+            nlines[ind].set_data(vn[i, 0], vn[i, 1])
+            nlines[ind].set_3d_properties(vn[i, 2])
             #ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')
 
     def animate_rocket():

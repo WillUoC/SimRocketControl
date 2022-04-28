@@ -20,15 +20,16 @@ class Rocket:
         self._mass = 549054*0.25  # kg -- Mass of Falcon 9 (fuel weight removed... approximately)
 
         self._radius = 10
-        self._height = 150
+        self._height = 155
+        self.nozzle_height = 5
 
         self._thrust = 5885000  # N
 
         cylinder_inertia = 1/4*self._mass*self._radius**2 + 1.0/12.0*self._mass*self._height**2
-        cylinder_axis_inertia = 1/2*self._mass*self._radius**2
 
-        self._inertias = np.array([cylinder_inertia, cylinder_inertia, cylinder_axis_inertia])
+        self._inertias = np.array([cylinder_inertia, cylinder_inertia, 1])
         self._vertices, self._simplices = self._generate_body_matrix()
+        self._n_verticies, self._n_simplices = self._generate_nozzle_matrix()
     
     def _generate_body_matrix(self):
         def generate_points():
@@ -37,7 +38,7 @@ class Rocket:
             cylinder_height = 100
             cylinder_diameter = self._radius
 
-            cone_height = self._height - cylinder_height
+            cone_height = self._height - cylinder_height - self.nozzle_height
 
             com_ratio = 0.5
 
@@ -47,11 +48,11 @@ class Rocket:
             self._com_height = com_height
             points = np.zeros((1, 3))
 
-            heights = np.arange(-com_height, self._height-com_height + height_resolution, height_resolution)
+            heights = np.arange(-com_height+self.nozzle_height, -com_height+self._height+height_resolution, height_resolution)
 
             for i in heights:
-                if i > cylinder_diameter - com_height:
-                    norm_height =  i - (cylinder_height-com_height)
+                if i > cylinder_height - com_height:
+                    norm_height =  i - (cylinder_height+self.nozzle_height-com_height)
                     diameter = cylinder_diameter*np.sqrt(cone_height*(cone_height-norm_height))/cone_height
                 else:
                     diameter = cylinder_diameter
@@ -67,6 +68,7 @@ class Rocket:
             points_new[:, 1] = points[:, 0]
             points_new[:, 2] = -points[:, 2]
 
+
             return(points_new)
 
         def convex_hull(points):
@@ -78,6 +80,53 @@ class Rocket:
         points = generate_points()
         hull = convex_hull(points)
         return(points, hull)
+
+    def _generate_nozzle_matrix(self):
+        def generate_points():
+            height_resolution = 25
+            diameter_pts = 6
+
+            com_ratio = 0.5
+            
+            com_height = self._height * com_ratio
+
+            self._com_height = com_height
+            heights = np.arange(-com_height, -com_height+self.nozzle_height+height_resolution, height_resolution)
+            points = np.zeros((1,3))
+            count = 0
+
+            for i in heights:
+                diameter = (i)/(2*np.tan(np.pi/3)) # check this out... could cause weird looking nozzle
+                for j in range(diameter_pts):
+                    new_point = np.zeros((1, 3))
+                    new_point[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
+                    if count != 0:
+                        points = np.append(points, new_point, 0)
+                    else:
+                        points[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
+                    count += 1
+
+            
+            points_new = np.zeros(np.shape(points))
+            points_new[:, 0] = points[:, 1]
+            points_new[:, 1] = points[:, 0]
+            points_new[:, 2] = -points[:, 2]
+
+
+            return(points_new)
+        
+        def convex_hull(points):
+            hull = ConvexHull(points)
+            for s in hull.simplices:
+                s = np.append(s, s[0])
+
+            return hull.simplices 
+
+        points = generate_points()
+        hull = convex_hull(points)
+        return(points, hull)  
+           
+
 
     def _rotate_matrix(self, angles):
         phi, theta, psi = angles
@@ -121,14 +170,14 @@ class Rocket:
         deltax, deltay, deltat = deltas
         phi, theta, psi = states[6:9]
 
-        thrust_vector = deltat * self._thrust * np.array([sin(deltax), sin(-deltay)*cos(deltax), -cos(-deltay)*cos(deltax)])
+        thrust_vector = deltat * self._thrust * np.array([sin(deltax), sin(-deltay)*cos(deltax), cos(-deltay)*cos(deltax)])
 
-        # R_plot = np.array([ 
-        #             [1,  0,  0],
-        #             [0,  1,  0],
-        #             [0,  0, -1]])
+        R_plot = np.array([ 
+                    [1,  0,  0],
+                    [0,  1,  0],
+                    [0,  0, -1]])
 
-        # thrust_vector = np.matmul(R_plot, thrust_vector)
+        thrust_vector = np.matmul(R_plot, thrust_vector)
 
        
         gravity_force = np.array([
@@ -142,52 +191,14 @@ class Rocket:
         moments = np.cross(distance_vector, thrust_vector)
 
         return(forces, moments)
-        
-# __________████████_____██████
-# _________█░░░░░░░░██_██░░░░░░█
-# ________█░░░░░░░░░░░█░░░░░░░░░█
-# _______█░░░░░░░███░░░█░░░░░░░░░█
-# _______█░░░░███░░░███░█░░░████░█
-# ______█░░░██░░░░░░░░███░██░░░░██
-# _____█░░░░░░░░░░░░░░░░░█░░░░░░░░███
-# ____█░░░░░░░░░░░░░██████░░░░░████░░█
-# ____█░░░░░░░░░█████░░░████░░██░░██░░█
-# ___██░░░░░░░███░░░░░░░░░░█░░░░░░░░███
-# __█░░░░░░░░░░░░░░█████████░░█████████
-# _█░░░░░░░░░░█████_████___████_█████___█
-# _█░░░░░░░░░░█______█_███__█_____███_█___█
-# █░░░░░░░░░░░░█___████_████____██_██████
-# ░░░░░░░░░░░░░█████████░░░████████░░░█
-# ░░░░░░░░░░░░░░░░█░░░░░█░░░░░░░░░░░░█
-# ░░░░░░░░░░░░░░░░░░░░██░░░░█░░░░░░██
-# ░░░░░░░░░░░░░░░░░░██░░░░░░░███████
-# ░░░░░░░░░░░░░░░░██░░░░░░░░░░█░░░░░█
-# ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█
-# ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█
-# ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█
-# ░░░░░░░░░░░█████████░░░░░░░░░░░░░░██
-# ░░░░░░░░░░█▒▒▒▒▒▒▒▒███████████████▒▒█
-# ░░░░░░░░░█▒▒███████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█
-# ░░░░░░░░░█▒▒▒▒▒▒▒▒▒█████████████████
-# ░░░░░░░░░░████████▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒█
-# ░░░░░░░░░░░░░░░░░░██████████████████
-# ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█
-# ██░░░░░░░░░░░░░░░░░░░░░░░░░░░██
-# ▓██░░░░░░░░░░░░░░░░░░░░░░░░██
-# ▓▓▓███░░░░░░░░░░░░░░░░░░░░█
-# ▓▓▓▓▓▓███░░░░░░░░░░░░░░░██
-# ▓▓▓▓▓▓▓▓▓███████████████▓▓█
-# ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
-# ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█
-# ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█
 
     def dynamics(self, t, x, states, deltas):
         def _rotate_dyn_matrix(moments, roll_rates):
             p, q, r = roll_rates
             M1 = moments - np.array([
                 q*r*(self._inertias[2] - self._inertias[1]), 
-                r*p*(self._inertias[0] - self._inertias[2]), 
-                p*q*(self._inertias[1] - self._inertias[0])])
+                r*p*(self._inertias[0]-self._inertias[2]), 
+                p*q*(self._inertias[1]-self._inertias[0])])
 
             roll_ddot = np.divide(M1, self._inertias)
             return(roll_ddot)
@@ -263,13 +274,20 @@ class Rocket:
         self._states = updated_states
 
         pos_ned = self._states[0:3]
+        #pos_nedN = np.array([pos_ned[0],pos_ned[1],pos_ned[2]+self.nozzle_height])
 
         angles = self._states[6:9]
 
         v = self._vertices                                      # Get the default body frame
+        vn = self._n_verticies
+        nAngles = angles + self._deltas
         ned_rep = np.tile(pos_ned.T, (len(v), 1))               # Create MxN Matric Copies of pos_ned for Translation
+        ned_repN = np.tile(pos_ned.T, (len(vn),1))
 
         R = self._rotate_matrix(angles)                         # Get the rotation matrix for the current state of the aircraft
+        Rn = self._rotate_matrix(nAngles)
+        vn = np.matmul(Rn,vn.T).T
+        vn += ned_repN
         vr = np.matmul(R, v.T).T                                # Multiply the body frame by the rotation matrix to get the rotated vertex position
         vr = vr + ned_rep
         R_plot = np.array([ [0,  1,  0],
@@ -277,6 +295,7 @@ class Rocket:
                             [0,  0, -1]])                       # Reference frame shift for NWU plotting   
 
         vr = np.matmul(R_plot, vr.T).T                          # Refactor the vertex array for NWU plotting
+        vn = np.matmul(R_plot,vn.T).T
         self._update_state_array()
 
-        return(vr, self._simplices)
+        return(vr, vn, self._simplices, self._n_simplices)
