@@ -12,7 +12,7 @@ class Controller:
 
         logging.info('Initializing PID Controllers...')
 
-        MAX_TILT = 15*np.pi/180
+        MAX_TILT = 45*np.pi/180
         self._uLoop = PIDController(MAX_TILT, -MAX_TILT)
         self._vLoop = PIDController(MAX_TILT, -MAX_TILT)
         self._wLoop = PIDController(None, None)
@@ -61,6 +61,8 @@ class Controller:
 
         counter = 0
         counter2 = 0
+
+        bellyflop = False
         landing = False
 
         while True:
@@ -84,7 +86,7 @@ class Controller:
             
             alt = h - self._rocket._com_height
 
-            if landing:
+            if landing:                    
                 if alt <= 5:
                     self._dtLoop.command_output(5)
                 elif alt <= 20:
@@ -110,7 +112,8 @@ class Controller:
                     logging.info(f'Pn: {Pn}, Pe: {Pe}')
                     if Pn > n_coord - tol and Pn < n_coord + tol and Pe > e_coord - tol and Pe < e_coord + tol:
                         landing = True
-
+            if bellyflop:
+                self._dtLoop.command_output(0)
 
             delta_t = self._dtLoop.step(w, 0, delay)
             delta_x = self._dxLoop.step(theta, q, delay)
@@ -132,6 +135,9 @@ class Controller:
                 u_c = self._pnLoop.step(Pn, u, delay)
                 v_c = self._peLoop.step(Pe, v, delay)
                 
+                if bellyflop:
+                    u_c = 0
+                    v_c = 0
                 self._uLoop.command_output(u_c)
                 self._vLoop.command_output(v_c)
 
