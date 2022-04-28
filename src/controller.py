@@ -56,12 +56,12 @@ class Controller:
     def cmd_loop(self, delay: float = 0.1):
 
         self._dtLoop.command_output(0)
-        self._pnLoop.command_output(100)
-        self._peLoop.command_output(100)
+
 
 
         counter = 0
         counter2 = 0
+        landing = False
 
         while True:
 
@@ -81,9 +81,38 @@ class Controller:
 
             h = -Pd
             dh = -w
+            
+            alt = h - self._rocket._com_height
+
+            if landing:
+                if alt <= 5:
+                    self._dtLoop.command_output(5)
+                elif alt <= 20:
+                    self._dtLoop.command_output(5)
+                elif alt <= 250:
+                    self._dtLoop.command_output(20)
+                else:
+                    self._dtLoop.command_output(200)
+            else:
+                if alt < 500:
+                    self._dtLoop.command_output(-100)
+
+                else:
+                    self._dtLoop.command_output(0)
+
+                    n_coord = 100
+                    e_coord = 100
+                    tol = 1
+
+                    self._pnLoop.command_output(n_coord)
+                    self._peLoop.command_output(e_coord)
+
+                    logging.info(f'Pn: {Pn}, Pe: {Pe}')
+                    if Pn > n_coord - tol and Pn < n_coord + tol and Pe > e_coord - tol and Pe < e_coord + tol:
+                        landing = True
+
 
             delta_t = self._dtLoop.step(w, 0, delay)
-
             delta_x = self._dxLoop.step(theta, q, delay)
             delta_y = self._dyLoop.step(phi, p, delay)
 
@@ -109,16 +138,8 @@ class Controller:
             deltas = np.array([delta_x, delta_y, delta_t])
             self._rocket.set_deltas(deltas)
 
-            alt = h - self._rocket._com_height
 
-            if alt <= 5:
-                self._dtLoop.command_output(5)
-            elif alt <= 20:
-                self._dtLoop.command_output(5)
-            elif alt <= 250:
-                self._dtLoop.command_output(20)
-            else:
-                 self._dtLoop.command_output(0)
+
 
             counter += 1
             counter2 += 1

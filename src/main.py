@@ -13,7 +13,7 @@ from math import floor
 
 logging.basicConfig(level=logging.INFO)
 
-dt = 0.05
+dt = 0.025
 Tfinal = 20.0
 t_step = Tfinal/dt
 frames = int(t_step)
@@ -24,33 +24,44 @@ def main():
 
     fig1 = plt.figure()
     ax = fig1.add_subplot(projection='3d')
+    ax.cla()
 
-    rocket._states = np.array([0, 0, -1000, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    ax.set_title('UAV Simulation') 
+    ax.set_xlabel('East Axis (m)') 
+    ax.set_ylabel('North Axis (m)')
+    ax.set_zlabel('Down Axis (m)')
+
+    lines = []
+    vr, simplices = rocket.get_vertices()
+
+    for index in range(len(simplices)):
+        plog, = ax.plot([], [], [], 'r-')
+        lines.append(plog)
+
+    rocket._states = np.array([0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     rocket._deltas = np.array([0, 0, 0])
 
     def update_vertices(i):
         vr, simplices = rocket.get_vertices()
         pos = rocket.get_pos()
-        ax.cla()
 
-        ax.set_title('UAV Simulation') 
-        ax.set_xlabel('East Axis (m)') 
-        ax.set_ylabel('North Axis (m)')
-        ax.set_zlabel('Down Axis (m)')
 
         AXIS_LIMIT = 80
 
         ax.set_xlim3d(pos[0] - AXIS_LIMIT, pos[0] + AXIS_LIMIT)
         ax.set_ylim3d(pos[1] - AXIS_LIMIT, pos[1] + AXIS_LIMIT)
         ax.set_zlim3d(pos[2] - AXIS_LIMIT, pos[2] + AXIS_LIMIT)    
-        #plane._update_state_array()
-
-        ax.plot3D(vr[:, 0], vr[:, 1], vr[:, 2], 'g-') 
+        
+        # plog.set_data(vr[:, 0], vr[:, 1])
+        # plog.set_3d_properties(vr[:, 2])
+        # ax.plot3D(vr[:, 0], vr[:, 1], vr[:, 2], 'g-') 
         
         
-        # for i in simplices:
-        #     i = np.append(i, i[0])
-        #     ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')
+        for ind, i in enumerate(simplices):
+            i = np.append(i, i[0])
+            lines[ind].set_data(vr[i, 0], vr[i, 1])
+            lines[ind].set_3d_properties(vr[i, 2])
+            #ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')
 
     def animate_rocket():
         anim = FuncAnimation(fig1, update_vertices, blit=False, frames=int(t_step), interval=int(dt*1000))
@@ -58,7 +69,7 @@ def main():
     
     commander = Controller(rocket)
 
-    COMMAND_DELAY = 0.02 # 0.05
+    COMMAND_DELAY = 0.05 # 0.05
 
     x1 = threading.Thread(target=commander.cmd_loop, args=(COMMAND_DELAY,), daemon=True)
     logging.info(f'CMD thread initialized @ {1.0/COMMAND_DELAY:.2f} Hz')
