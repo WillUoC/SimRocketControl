@@ -145,7 +145,11 @@ class Rocket:
     def dynamics(self, t, x, states, deltas):
         def _rotate_dyn_matrix(moments, roll_rates):
             p, q, r = roll_rates
-            M1 = moments - np.array([q*r*(self._inertias[2] - self._inertias[1]), r*p*(self._inertias[0]-self._inertias[2]), p*q*(self._inertias[1]-self._inertias[0])])
+            M1 = moments - np.array([
+                q*r*(self._inertias[2] - self._inertias[1]), 
+                r*p*(self._inertias[0]-self._inertias[2]), 
+                p*q*(self._inertias[1]-self._inertias[0])])
+
             roll_ddot = np.divide(M1, self._inertias)
             return(roll_ddot)
 
@@ -154,8 +158,7 @@ class Rocket:
             # p, q, r = roll_rates
 
             # ang_dot = np.array([p + (q*np.sin(phi) + r*np.cos(phi))*np.tan(theta), q*np.cos(phi)-r*np.sin(phi), 0])
-
-
+            
             phi, theta, psi = angles
             p, q, r = roll_rates
 

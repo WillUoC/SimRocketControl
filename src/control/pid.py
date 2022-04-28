@@ -4,7 +4,7 @@ import logging
 class PIDController():
         
     def __init__(self, uLimit, dLimit):
-        logging.info('  PID loop initialized')
+        logging.info('   PID loop initialized')
         self._P, self._I, self._D, self._error = 0, 0, 0, 0
         self._Kp, self._Ki, self._Kd = 0, 0, 0
         self._uLim, self._dLim = uLimit, dLimit
@@ -47,7 +47,7 @@ class PIDController():
     
     def set_gains(self, gains):
         self._Kp, self._Ki, self._Kd = gains
-        logging.info(f' PID set with gains {gains}')
+        logging.info(f'   PID set with gains {gains}')
     
     def reset(self):
         self._P, self._I, self._D, self._error = 0, 0, 0, 0

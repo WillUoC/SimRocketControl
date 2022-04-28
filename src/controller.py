@@ -10,6 +10,7 @@ class Controller:
     def __init__(self, rocket: Rocket):
         self._rocket = rocket
 
+        logging.info('Initializing PID Controllers...')
 
         MAX_TILT = 15*np.pi/180
         self._uLoop = PIDController(MAX_TILT, -MAX_TILT)
@@ -38,6 +39,8 @@ class Controller:
         pe_gains = pn_gains
         pd_gains = (0, 0, 0)
 
+        logging.info('Setting Gains...')
+
         self._pnLoop.set_gains(pn_gains)
         self._peLoop.set_gains(pe_gains)
         self._pdLoop.set_gains(pd_gains)
@@ -53,8 +56,8 @@ class Controller:
     def cmd_loop(self, delay: float = 0.1):
 
         self._dtLoop.command_output(0)
-        self._pnLoop.command_output(0)
-        self._peLoop.command_output(0)
+        self._pnLoop.command_output(100)
+        self._peLoop.command_output(100)
 
 
         counter = 0
@@ -103,8 +106,6 @@ class Controller:
                 self._uLoop.command_output(u_c)
                 self._vLoop.command_output(v_c)
 
-
-            logging.info(f'{w=}')
             deltas = np.array([delta_x, delta_y, delta_t])
             self._rocket.set_deltas(deltas)
 
@@ -117,7 +118,7 @@ class Controller:
             elif alt <= 250:
                 self._dtLoop.command_output(20)
             else:
-                 self._dtLoop.command_output(100)
+                 self._dtLoop.command_output(0)
 
             counter += 1
             counter2 += 1

@@ -58,14 +58,16 @@ def main():
     
     commander = Controller(rocket)
 
-    COMMAND_DELAY = 0.05
+    COMMAND_DELAY = 0.02 # 0.05
 
     x1 = threading.Thread(target=commander.cmd_loop, args=(COMMAND_DELAY,), daemon=True)
-    logging.info('CMD thread initialized')
+    logging.info(f'CMD thread initialized @ {1.0/COMMAND_DELAY:.2f} Hz')
     x1.start()
     
+    logging.info('Starting Simulation Thread')
     animate_rocket()
     
+    logging.info('Plotting')
     data = rocket.get_state_array()
     titles = [
         'Pn',
