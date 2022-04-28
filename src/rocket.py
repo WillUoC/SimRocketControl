@@ -280,7 +280,8 @@ class Rocket:
 
         v = self._vertices                                      # Get the default body frame
         vn = self._n_verticies
-        nAngles = angles + self._deltas
+        #nAngles = angles + self._deltas
+        nAngles = np.array([angles[0],angles[1],0])
         ned_rep = np.tile(pos_ned.T, (len(v), 1))               # Create MxN Matric Copies of pos_ned for Translation
         ned_repN = np.tile(pos_ned.T, (len(vn),1))
 
