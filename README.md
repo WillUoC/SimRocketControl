@@ -1,9 +1,9 @@
 # ModelSimProject
-## By: Aaron Schmitt, Alexis Whitaker, Nate Steffen, and William Black
+## By: Alexis Whitaker, Nate Steffen, and William Black
 
-Description
------------
-This is a short concise placeholder for our project description... for when we figure out what we actually want to do!
+### Description
+
+A project to simulate a SpaceX-esque rocket to land using the control of its thruster.
 
 ----------------------------------------------------------------------------------------------------------------
 Note:
@@ -13,5 +13,6 @@ To install all packages required for project development, navigate to the projec
 pip install -r requirements.txt
 ```
 
-This will install all specified dependencies. 
+This will install all specified dependencies.
+
 IMPORTANT: Make sure to add all new libraries to 'requirements.txt' folder when using them in the project!
