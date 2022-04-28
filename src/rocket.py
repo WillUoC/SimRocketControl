@@ -31,8 +31,8 @@ class Rocket:
     
     def _generate_body_matrix(self):
         def generate_points():
-            height_resolution = 15
-            diameter_pts = 10
+            height_resolution = 25
+            diameter_pts = 6
             cylinder_height = 100
             cylinder_diameter = self._radius
 
