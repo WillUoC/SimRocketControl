@@ -37,8 +37,9 @@ def main():
     for index in range(len(simplices)):
         plog, = ax.plot([], [], [], 'r-')
         lines.append(plog)
-
-    rocket._states = np.array([0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    
+    rocket._states = np.array([0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0])      #Takeoff
+    #rocket._states = np.array([0, 0, -10000, 0, 0, 500, 0, 65*np.pi/180, 0, 0, 0, 0])  # Bellyflop
     rocket._deltas = np.array([0, 0, 0])
 
     def update_vertices(i):
