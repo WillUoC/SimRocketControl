@@ -3,6 +3,7 @@ from numpy import sin, cos, tan
 from scipy.spatial import ConvexHull
 from scipy.integrate import solve_ivp
 import math
+import logging
 class Rocket:
     _gravity = 9.81
 
@@ -63,6 +64,11 @@ class Rocket:
                     new_point[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
                     points = np.append(points, new_point, 0)
             
+
+            translate_point = np.zeros((1, 3))
+            translate_point[0] = [0, 0, -com_height + self.nozzle_height]
+            points = np.append(points, translate_point, 0)
+
             points_new = np.zeros(np.shape(points))
             points_new[:, 0] = points[:, 1]
             points_new[:, 1] = points[:, 0]
@@ -83,26 +89,38 @@ class Rocket:
 
     def _generate_nozzle_matrix(self):
         def generate_points():
-            height_resolution = 25
+            height_resolution = 5
             diameter_pts = 6
 
             com_ratio = 0.5
             
-            com_height = self._height * com_ratio
+            com_height = self._com_height
 
-            self._com_height = com_height
-            heights = np.arange(-com_height, -com_height+self.nozzle_height+height_resolution, height_resolution)
+            # self._com_height = com_height
+            # heights = np.arange(-com_height, -com_height+self.nozzle_height+height_resolution, height_resolution)
+            heights = np.array([-com_height, -com_height + self.nozzle_height])
+            print(f'{heights=}')
             points = np.zeros((1,3))
             count = 0
 
-            for i in heights:
-                diameter = (i)/(2*np.tan(np.pi/3)) # check this out... could cause weird looking nozzle
-                for j in range(diameter_pts):
+            for ind, i in enumerate(heights):
+                print(f'height = {i}')
+                # diameter = (i)/(2*np.tan(np.pi/3)) # check this out... could cause weird looking nozzle
+                if ind == 0:
+                    diameter = 3
+                    for j in range(diameter_pts):
+                        new_point = np.zeros((1, 3))
+                        new_point[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
+                        points = np.append(points, new_point, 0)
+                        #points -= np.array([0,0,self.nozzle_height])
+                else:
                     new_point = np.zeros((1, 3))
-                    new_point[0] = [diameter * np.cos(j*2*np.pi/diameter_pts), diameter * np.sin(j*2*np.pi/diameter_pts), i]
+                    new_point[0] = [0, 0, i]
                     points = np.append(points, new_point, 0)
-                    #points -= np.array([0,0,self.nozzle_height])
-            
+            origin_index = [(0, 0), (0, 1)]
+            points = np.delete(points, origin_index)
+            print(f'{points=}')
+
             points_new = np.zeros(np.shape(points))
             points_new[:, 0] = points[:, 1]
             points_new[:, 1] = points[:, 0]
@@ -122,8 +140,6 @@ class Rocket:
         hull = convex_hull(points)
         return(points, hull)  
            
-
-
     def _rotate_matrix(self, angles):
         phi, theta, psi = angles
 
@@ -274,26 +290,33 @@ class Rocket:
 
         angles = self._states[6:9]
 
+
+
         v = self._vertices                                      # Get the default body frame
-        vn = self._n_verticies
-        #nAngles = angles + self._deltas
-       # nAngles = np.array([angles[0]+self._deltas[0],angles[1]+self._deltas[1],angles[2]])
-        nAngles = np.array([self._deltas[0],self._deltas[1],0])
         ned_rep = np.tile(pos_ned.T, (len(v), 1))               # Create MxN Matric Copies of pos_ned for Translation
-        ned_repN = np.tile(pos_ned.T, (len(vn),1))
 
         R = self._rotate_matrix(angles)                         # Get the rotation matrix for the current state of the aircraft
-        Rn = self._rotate_matrix(nAngles)
-        vn = np.matmul(R,vn.T).T
-        vn = np.matmul(Rn,vn.T).T
-        vn += ned_repN
         vr = np.matmul(R, v.T).T                                # Multiply the body frame by the rotation matrix to get the rotated vertex position
         vr = vr + ned_rep
+        nozzle_displacement = vr[-1, :]
+
         R_plot = np.array([ [0,  1,  0],
                             [1,  0,  0],
                             [0,  0, -1]])                       # Reference frame shift for NWU plotting   
 
         vr = np.matmul(R_plot, vr.T).T                          # Refactor the vertex array for NWU plotting
+
+
+
+        vn = self._n_verticies
+        ned_repN = np.tile(nozzle_displacement.T, (len(vn),1))
+        nAngles = np.array([-self._deltas[1] + angles[0], -self._deltas[0] + angles[1] ,0])
+        Rn = self._rotate_matrix(nAngles)
+        vn = np.matmul(Rn,vn.T).T
+
+        vn = vn + ned_repN
+                    # Reference frame shift for NWU plotting   
+
         vn = np.matmul(R_plot,vn.T).T
         self._update_state_array()
 

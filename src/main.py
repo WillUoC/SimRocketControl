@@ -72,8 +72,7 @@ def main():
             i = np.append(i, i[0])
             nlines[ind].set_data(vn[i, 0], vn[i, 1])
             nlines[ind].set_3d_properties(vn[i, 2])
-            #ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')
-
+            #ax.plot3D(vr[i, 0], vr[i, 1], vr[i, 2], 'r-')\
     def animate_rocket():
         anim = FuncAnimation(fig1, update_vertices, blit=False, frames=int(t_step), interval=int(dt*1000))
         plt.show()

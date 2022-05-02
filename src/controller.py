@@ -94,7 +94,7 @@ class Controller:
                 else:
                     self._dtLoop.command_output(200)
             else:
-                if alt < 500:
+                if alt < 100:
                     self._dtLoop.command_output(-100)
 
                 else:
@@ -107,7 +107,7 @@ class Controller:
                     self._pnLoop.command_output(n_coord)
                     self._peLoop.command_output(e_coord)
 
-                    logging.info(f'Pn: {Pn}, Pe: {Pe}')
+                    #logging.info(f'Pn: {Pn}, Pe: {Pe}')
                     if Pn > n_coord - tol and Pn < n_coord + tol and Pe > e_coord - tol and Pe < e_coord + tol:
                         landing = True
 
